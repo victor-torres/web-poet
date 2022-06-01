@@ -6,6 +6,8 @@ import requests
 
 import parsel
 from web_poet.page_inputs import (
+    RequestUrl,
+    ResponseUrl,
     HttpRequest,
     HttpResponse,
     HttpRequestBody,
@@ -14,6 +16,55 @@ from web_poet.page_inputs import (
     HttpResponseHeaders,
     BrowserHtml,
 )
+
+
+@pytest.mark.parametrize("cls", [RequestUrl, ResponseUrl])
+def test_url(cls):
+    url_value = "https://example.com/category/product?query=123&id=xyz#frag1"
+
+    url = cls(url_value)
+
+    assert str(url) == url_value
+    assert url.scheme == "https"
+    assert url.host == "example.com"
+    assert url.path == "/category/product"
+    assert url.query_string == "query=123&id=xyz"
+    assert url.fragment == "frag1"
+
+    new_url = cls(url)
+    assert url == new_url
+    assert str(url) == str(new_url)
+
+
+@pytest.mark.parametrize("compare_cls", [True, False])
+@pytest.mark.parametrize("cls", [RequestUrl, ResponseUrl])
+def test_url_equality(compare_cls, cls):
+    # Trailing / in the base URL
+    no_trail = cls("https://example.com")
+    with_trail = "https://example.com/"
+    if compare_cls:
+        with_trail = cls(with_trail)
+    assert no_trail == with_trail
+    assert str(no_trail) != str(with_trail)
+
+    # Trailing / in the path URL
+    no_trail = cls("https://example.com/foo")
+    with_trail = "https://example.com/foo/"
+    if compare_cls:
+        with_trail = cls(with_trail)
+    assert no_trail != with_trail  # Should not be equal
+    assert str(no_trail) != str(with_trail)
+
+
+@pytest.mark.parametrize("cls", [RequestUrl, ResponseUrl])
+def test_url_encoding(cls):
+    url_value = "http://εμπορικόσήμα.eu/путь/這裡"
+
+    url = cls(url_value)
+    str(url) == url_value
+
+    url = cls(url_value, encoded=False)
+    str(url) == "http://xn--jxagkqfkduily1i.eu/%D0%BF%D1%83%D1%82%D1%8C/%E9%80%99%E8%A3%A1"
 
 
 @pytest.mark.parametrize("body_cls", [HttpRequestBody, HttpResponseBody])

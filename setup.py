@@ -25,6 +25,7 @@ setup(
         'url-matcher',
         'multidict',
         'w3lib >= 1.22.0',
+        'yarl',
     ],
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',

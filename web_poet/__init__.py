@@ -10,8 +10,8 @@ from .page_inputs import (
     HttpRequestBody,
     HttpResponseBody,
     Meta,
-    RequestURL,
-    ResponseURL,
+    RequestUrl,
+    ResponseUrl,
 )
 from .overrides import PageObjectRegistry, consume_modules, OverrideRule
 

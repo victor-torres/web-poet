@@ -67,7 +67,7 @@ class ResponseShortcutsMixin(SelectableMixin):
         # FIXME: move it to HttpResponse
         if self._cached_base_url is None:
             text = self.html[:4096]
-            self._cached_base_url = get_base_url(text, self.url)
+            self._cached_base_url = get_base_url(text, str(self.url))
         return self._cached_base_url
 
     def urljoin(self, url: str) -> str:

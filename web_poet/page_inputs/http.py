@@ -9,6 +9,7 @@ from w3lib.encoding import (
     http_content_type_encoding
 )
 
+import yarl
 from web_poet._base import _HttpHeaders
 from web_poet.utils import memoizemethod_noargs
 from web_poet.mixins import SelectableMixin
@@ -18,13 +19,64 @@ T_headers = TypeVar("T_headers", bound="HttpResponseHeaders")
 _AnyStrDict = Dict[AnyStr, Union[AnyStr, List[AnyStr], Tuple[AnyStr, ...]]]
 
 
-class ResponseURL(str):
-    """ URL of the response """
+class _Url:
+    def __init__(self, url: Union[str, yarl.URL], encoded=True):
+        self._url = yarl.URL(str(url), encoded=encoded)
+
+    def __str__(self) -> str:
+        return str(self._url)
+
+    def __repr__(self) -> str:
+        return f'{type(self).__name__}({str(self._url)!r})'
+
+    def __eq__(self, other) -> bool:
+        if self._url.path == "/":
+            if isinstance(other, str):
+                other = _Url(other)
+            if self._url.path == other.path:
+                return True
+        return str(self._url) == str(other)
+
+    @property
+    def scheme(self) -> str:
+        return self._url.scheme
+
+    @property
+    def host(self) -> Optional[str]:
+        return self._url.host
+
+    @property
+    def path(self) -> str:
+        return self._url.path
+
+    @property
+    def query_string(self) -> str:
+        return self._url.query_string
+
+    @property
+    def fragment(self) -> str:
+        return self._url.fragment
+
+
+class ResponseUrl(_Url):
+    """ URL of the response
+
+    :param url: a string representation of a URL.
+    :param encoded: If set to False, the given ``url`` would be auto-encoded.
+        However, there's no guarantee that correct encoding is used. Thus,
+        it's recommended to set this in the *default* ``False`` value.
+    """
     pass
 
 
-class RequestURL(str):
-    """ URL of the request """
+class RequestUrl(_Url):
+    """ URL of the request
+
+    :param url: a string representation of a URL.
+    :param encoded: If set to False, the given ``url`` would be auto-encoded.
+        However, there's no guarantee that correct encoding is used. Thus,
+        it's recommended to set this in the *default* ``False`` value.
+    """
     pass
 
 
@@ -162,7 +214,7 @@ class HttpRequest:
     **web-poet** like :class:`~.HttpClient`.
     """
 
-    url: RequestURL = attrs.field(converter=RequestURL)
+    url: RequestUrl = attrs.field(converter=RequestUrl)
     method: str = attrs.field(default="GET", kw_only=True)
     headers: HttpRequestHeaders = attrs.field(
         factory=HttpRequestHeaders, converter=HttpRequestHeaders, kw_only=True
@@ -195,7 +247,7 @@ class HttpResponse(SelectableMixin):
     is auto-detected from headers and body content.
     """
 
-    url: ResponseURL = attrs.field(converter=ResponseURL)
+    url: ResponseUrl = attrs.field(converter=ResponseUrl)
     body: HttpResponseBody = attrs.field(converter=HttpResponseBody)
     status: Optional[int] = attrs.field(default=None, kw_only=True)
     headers: HttpResponseHeaders = attrs.field(factory=HttpResponseHeaders,
