@@ -3,12 +3,14 @@
 In general, users shouldn't import and use the contents of this module.
 """
 
-
+from urllib.parse import urljoin
 from typing import Type, TypeVar, List, Dict, Union
 
 from multidict import CIMultiDict
+from w3lib.url import add_or_replace_parameters
 
 T_headers = TypeVar("T_headers", bound="_HttpHeaders")
+T_url = TypeVar("T_url", bound="_Url")
 
 
 class _HttpHeaders(CIMultiDict):
@@ -43,8 +45,22 @@ class _Url:
                             f"got {url.__class__} instance instead")
         self._url = str(url)
 
+    def join(self: T_url, other: Union[str, '_Url']) -> T_url:
+        return self.__class__(urljoin(self._url, str(other)))
+
+    def update_query(self: T_url,
+                     new_parameters: Dict[str, str]) -> T_url:
+        new_url = add_or_replace_parameters(self._url,
+                                            new_parameters=new_parameters)
+        return self.__class__(new_url)
+
     def __str__(self) -> str:
         return self._url
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self._url!r})"
+
+    def __mod__(self: T_url, other: Dict[str, str]) -> T_url:
+        return self.update_query(other)
+
+    __truediv__ = join

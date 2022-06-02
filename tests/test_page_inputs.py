@@ -446,30 +446,3 @@ def test_browser_html():
     assert html.css("p::text").getall() == ["Hello, ", "world!"]
     assert isinstance(html.selector, parsel.Selector)
 
-
-def test_url_base_class():
-    url_str = "http://example.com"
-    url = _Url(url_str)
-    assert str(url) == url_str
-    assert repr(url) == "_Url('http://example.com')"
-
-    with pytest.raises(TypeError):
-        _Url(123)
-
-
-def test_url_subclass():
-    url_str = "http://example.com"
-
-    class MyUrl(_Url):
-        pass
-
-    class MyUrl2(_Url):
-        pass
-
-    url = MyUrl(url_str)
-    assert str(url) == url_str
-    assert url._url == url_str
-    assert repr(url) == "MyUrl('http://example.com')"
-
-    url2 = MyUrl2(url)
-    assert str(url2) == str(url)
