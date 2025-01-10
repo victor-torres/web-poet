@@ -223,3 +223,20 @@ def _without_unsupported_field_names(
     if item_field_names is None:  # item_cls doesn't define field names upfront
         return field_names[:]
     return list(set(field_names) & set(item_field_names))
+
+
+# TODO: enforce singleton
+class UnsetType:
+    def __repr__(self) -> str:
+        return "Unset"
+
+    def __str__(self) -> str:
+        return self.__repr__()
+
+    def __bool__(self) -> bool:
+        return False
+
+
+# Represents a field that hasn't been set with any values instead of being
+# None.
+Unset = UnsetType()
